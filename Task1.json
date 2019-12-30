@@ -1,0 +1,138 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Description": "Task1 Tag on Condition",
+    "Parameters": {
+        "InstanceType": {
+            "Type": "String",
+            "Default": "t2.micro",
+            "AllowedValues": [
+                "t2.small",
+                "t2.medium",
+                "m4.small",
+                "m4.medium",
+                "t2.micro"
+            ],
+            "Description": "Please select an instance size"
+        },
+        "MyKeyPair": {
+            "Type": "AWS::EC2::KeyPair::KeyName",
+            "Description": "Please select an EC2 Key Pair"
+        },
+        "EnvironmentType": {
+            "Type": "String",
+            "Default": "dev",
+            "Description": "Please select an Environment Type",
+            "AllowedValues": [
+                "dev",
+                "prod"
+            ]
+        },
+        "Task": {
+            "Type": "String",
+            "Default": "Bastion",
+            "Description": "Please select a Task Type",
+            "AllowedValues": [
+                "Bastion",
+                "Server"
+            ]
+        }
+    },
+    "Mappings": {
+        "RegionMap": {
+            "us-east-1": {
+                "dev": "ami-0e70db31f7e942241",
+                "prod": "ami-0e70db31f7e942241"
+            },
+            "us-east-2": {
+                "dev": "ami-0cf31d971a3ca20d6",
+                "prod": "ami-03291866"
+            },
+            "us-west-1": {
+                "dev": "ami-0782017a917e973e7",
+                "prod": "ami-18726478"
+            },
+            "us-west-2": {
+                "dev": "ami-6cd6f714",
+                "prod": "ami-28e07e50"
+            }
+        }
+    },
+    "Conditions": {
+        "EnvironmentCheck": {
+            "Fn::Equals": [
+                {
+                    "Ref": "EnvironmentType"
+                },
+                "prod"
+            ]
+        },
+        "TaskCheck": {
+            "Fn::Equals": [
+                {
+                    "Ref": "Task"
+                },
+                "Bastion"
+            ]
+        },
+        "Both": {
+            "Fn::And": [
+                {"Condition": "EnvironmentCheck"},
+                {"Condition": "TaskCheck"}
+            ]
+        }
+       
+    },
+    "Resources": {
+        "MySecurityGroup": {
+            "Type": "AWS::EC2::SecurityGroup",
+            "Properties": {
+                "GroupDescription": "My security group--created by CloudFormation",
+                "SecurityGroupIngress": [
+                    {
+                        "IpProtocol": "tcp",
+                        "FromPort": "22",
+                        "ToPort": "22",
+                        "CidrIp": "0.0.0.0/0"
+                    }
+                ]
+            }
+        },
+        "MyInstance": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "KeyName": {
+                    "Ref": "MyKeyPair"
+                },
+                "InstanceType": {
+                    "Ref": "InstanceType"
+                },
+                "ImageId": {
+                    "Fn::FindInMap": [
+                        "RegionMap",
+                        {
+                            "Ref": "AWS::Region"
+                        },
+                        "dev"
+                    ]
+                },
+                "Tags": [
+                    {
+                        "Fn::If": [
+                            "Both",
+                            {
+                                "Key": "Bastion",
+                                "Value": "True"
+                            },
+                            {"Ref": "AWS::NoValue"}
+                        ]
+                    }
+                ],
+                "SecurityGroups": [
+                    {
+                        "Ref": "MySecurityGroup"
+                    }
+                ]
+            }
+        }
+    }
+}
