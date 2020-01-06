@@ -4,6 +4,6 @@ Create a Nested Staks to achieve the following:
 
 2.Child Stack1 -- This stack create a VPC with a Public Subne and a Network ACL
 
-3.Child Stack2 -- This stack create an Auto Scaling group to launch Instances in the VPC created by Child Stack1.
+3.Child Stack3 -- This stack create an Auto Scaling group to launch Instances in the VPC created by Child Stack1.
                   Additionally make sue of Helper Scripts to install a simple webserver
                   Using helper Scripts signal back to the ClloudFormation that the web serrver has been instanlled successfully.
