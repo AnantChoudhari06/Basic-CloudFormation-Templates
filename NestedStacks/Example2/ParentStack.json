@@ -1,0 +1,28 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "MasterStack",
+	
+	"Resources": {
+		"VPCStack": {
+			"Type" : "AWS::CloudFormation::Stack",
+			"Properties" : {
+				"TemplateURL" : "https://anant-cfn-nested-stacks.s3.us-east-2.amazonaws.com/child1.json",
+				"TimeoutInMinutes" : "2"
+			}
+		},
+		"Nested1": {
+			"Type" : "AWS::CloudFormation::Stack",
+            "DependsOn" : "VPCStack",
+			"Properties" : {
+				"TemplateURL" : "https://anant-cfn-nested-stacks.s3.us-east-2.amazonaws.com/child3.json",
+                "Parameters": {
+				  "VPCId" : { "Fn::GetAtt" : [ "VPCStack", "Outputs.VPCId" ] },
+				  "SubnetId":{ "Fn::GetAtt" : [ "VPCStack", "Outputs.SubnetId" ] }
+               },
+				"TimeoutInMinutes" : "5"
+			}
+		}
+		
+		
+	}
+}
